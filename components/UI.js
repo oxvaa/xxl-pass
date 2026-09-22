@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Platform } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SHADOW } from '../theme';
@@ -9,8 +10,21 @@ export function Txt({ children, style, muted=false, faint=false, mono=false, ...
 }
 
 export function Screen({ children, scroll=true, contentStyle, safeTop=true }) {
-  const body = <View style={[styles.screenInner, safeTop && { paddingTop: Platform.OS === 'android' ? 22 : 8 }, contentStyle]}>{children}</View>;
-  return <View style={styles.screen}>{scroll ? <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 130 }}>{body}</ScrollView> : body}</View>;
+  const insets=useSafeAreaInsets();
+  const top=safeTop ? Math.max(insets.top, 12)+8 : 0;
+  const bottom=Math.max(insets.bottom, 10);
+
+  const body=<View style={[styles.screenInner,{paddingTop:top},contentStyle]}>{children}</View>;
+
+  return <View style={styles.screen}>
+    {scroll
+      ? <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="never"
+          contentContainerStyle={{paddingBottom:118+bottom}}
+        >{body}</ScrollView>
+      : body}
+  </View>;
 }
 
 export function GlassCard({ children, style, onPress, gradient, accessibilityLabel }) {
@@ -49,9 +63,14 @@ export function TopBar({ onProfile, onNotifications, badge=0 }) {
       <Txt style={styles.brand}>XXL</Txt>
       <Txt style={styles.brandSub}>CZECHIA · PASS</Txt>
     </View>
-    <View style={{flexDirection:'row',gap:9}}>
-      <Pressable onPress={onNotifications} style={styles.circle}><Ionicons name="notifications-outline" size={20} color="#fff" />{badge>0 && <View style={styles.dot} />}</Pressable>
-      <Pressable onPress={onProfile} style={styles.avatar}><Txt style={{fontWeight:'900',fontSize:11}}>ŠS</Txt></Pressable>
+    <View style={styles.topActions}>
+      <Pressable onPress={onNotifications} style={styles.circle}>
+        <Ionicons name="notifications-outline" size={20} color="#fff" />
+        {badge>0 && <View style={styles.dot} />}
+      </Pressable>
+      <Pressable onPress={onProfile} style={styles.avatar}>
+        <Txt style={{fontWeight:'900',fontSize:11,color:'#050505'}}>ŠS</Txt>
+      </Pressable>
     </View>
   </View>;
 }
@@ -62,7 +81,8 @@ const styles = StyleSheet.create({
   screen:{flex:1,backgroundColor:COLORS.bg},
   screenInner:{paddingHorizontal:16},
   txt:{color:COLORS.text,fontSize:14},
-  muted:{color:COLORS.muted}, faint:{color:COLORS.faint},
+  muted:{color:COLORS.muted},
+  faint:{color:COLORS.faint},
   mono:{fontVariant:['tabular-nums']},
   card:{backgroundColor:COLORS.panel,borderRadius:28,borderWidth:1,borderColor:COLORS.border,padding:18,...SHADOW},
   pill:{alignSelf:'flex-start',borderRadius:999,borderWidth:1,borderColor:COLORS.borderStrong,paddingHorizontal:10,paddingVertical:7,backgroundColor:'rgba(255,255,255,0.04)'},
@@ -77,8 +97,9 @@ const styles = StyleSheet.create({
   button:{minHeight:54,borderRadius:18,backgroundColor:'#FFFFFF',alignItems:'center',justifyContent:'center',flexDirection:'row',gap:8,paddingHorizontal:18},
   buttonSecondary:{backgroundColor:'rgba(255,255,255,.07)',borderWidth:1,borderColor:COLORS.borderStrong},
   buttonText:{color:'#050505',fontSize:13,fontWeight:'900',letterSpacing:.2},
-  topBar:{height:72,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
-  brand:{fontSize:23,fontWeight:'1000',letterSpacing:-1.2,lineHeight:24},
+  topBar:{minHeight:68,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
+  topActions:{flexDirection:'row',gap:9,alignItems:'center'},
+  brand:{fontSize:23,fontWeight:'900',letterSpacing:-1.2,lineHeight:24},
   brandSub:{fontSize:8,fontWeight:'900',letterSpacing:2,color:COLORS.muted,marginTop:2},
   circle:{height:42,width:42,borderRadius:21,alignItems:'center',justifyContent:'center',backgroundColor:COLORS.panel2,borderWidth:1,borderColor:COLORS.border},
   avatar:{height:42,width:42,borderRadius:21,alignItems:'center',justifyContent:'center',backgroundColor:'#FFFFFF'},
