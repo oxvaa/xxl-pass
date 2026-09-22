@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#050505">
-<title>XXL PASS 1.0 → Expo Snack</title>
+<title>XXL PASS 1.0.1 → Expo Snack</title>
 <style>
 :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff;background:#050505}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;padding:18px;display:grid;place-items:center;background:radial-gradient(circle at 80% 0,#4b0714 0,transparent 34%),radial-gradient(circle at 0 70%,#18181e 0,transparent 34%),#050505}
@@ -18,7 +18,7 @@ button,.open{width:100%;min-height:58px;border-radius:19px;border:0;font-weight:
 </head>
 <body>
 <main>
-  <div class="top"><div class="brand">XXL CZECHIA · PASS</div><div class="version">1.0.0</div></div>
+  <div class="top"><div class="brand">XXL CZECHIA · PASS</div><div class="version">1.0.1</div></div>
   <h1 class="hero">ARENA<br><span class="live">TAKEDOWN.</span></h1>
   <p class="sub">Create the full XXL PASS 1.0 Expo Snack from this GitHub Pages launcher. Includes festival Home, LIVE mode, digital pass, lineup, timetable, concept venue map, merch reservations, rewards, crew and memories.</p>
   <div class="stats"><div class="stat"><b id="code">—</b><span>CODE FILES</span></div><div class="stat"><b id="dep">—</b><span>DEPENDENCIES</span></div><div class="stat"><b>10+</b><span>EXPERIENCES</span></div></div>
@@ -28,16 +28,43 @@ button,.open{width:100%;min-height:58px;border-radius:19px;border:0;font-weight:
     <div class="feature"><b>My XXL</b> · favourites, reminders and personal timetable</div>
     <div class="feature"><b>Festival hub</b> · map, merch, rewards, crew and memories</div>
   </div>
-  <button class="go" id="go">Create new XXL PASS Snack</button>
-  <pre class="status" id="status">Ready · XXL PASS 1.0 payload is loaded from this Pages deployment.</pre>
+  <button class="go" id="go">Create fixed XXL PASS 1.0.1 Snack</button>
+  <pre class="status" id="status">Ready · XXL PASS 1.0.1 startup hotfix. Uses the existing 1.0.0 payload and patches it before creating a new Snack.</pre>
   <a class="open" id="open" target="_blank" rel="noopener">Open new Snack</a>
-  <div class="note">This launcher creates a new Snack and does not modify existing projects. Ticket QR, crew location, payments and Wallet integration are prototype-only until connected to production services.</div>
+  <div class="note">Startup hotfix: React Native font weights are normalized to supported values. This launcher creates a new Snack and does not modify existing projects. Ticket QR, crew location, payments and Wallet integration are prototype-only until connected to production services.</div>
 </main>
 <script type="module">
 const go=document.querySelector('#go'),statusEl=document.querySelector('#status'),openLink=document.querySelector('#open'),codeEl=document.querySelector('#code'),depEl=document.querySelector('#dep');
 const setStatus=(t,k='')=>{statusEl.textContent=t;statusEl.className='status '+k};
 async function loadSdk(){try{return await import('https://cdn.jsdelivr.net/npm/snack-sdk@6.6.2/+esm')}catch{return await import('https://esm.sh/snack-sdk@6.6.2?bundle')}}
-async function readPayload(){const url=new URL('./snack-payload-1.0.0.json',location.href);const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('Payload HTTP '+r.status);return r.json()}
+async function readPayload(){
+  const url=new URL('./snack-payload-1.0.0.json',location.href);
+  const r=await fetch(url,{cache:'no-store'});
+  if(!r.ok)throw new Error('Payload HTTP '+r.status);
+  const payload=await r.json();
+
+  // XXL PASS 1.0.1 startup hotfix.
+  // React Native supports font weights up to 900; the original build
+  // accidentally used 1000 in multiple first-render styles.
+  Object.values(payload.code||{}).forEach(file=>{
+    if(file?.type==='CODE'&&typeof file.contents==='string'){
+      file.contents=file.contents
+        .replaceAll("fontWeight:'1000'","fontWeight:'900'")
+        .replaceAll('fontWeight:"1000"','fontWeight:"900"');
+    }
+  });
+
+  payload.dependencies={
+    ...(payload.dependencies||{}),
+    'expo-linear-gradient':'~15.0.8'
+  };
+  payload.manifest={
+    ...(payload.manifest||{}),
+    name:'XXL PASS 1.0.1 · Arena Takedown',
+    description:'XXL PASS startup hotfix — normalized React Native font weights.'
+  };
+  return payload;
+}
 try{const p=await readPayload();codeEl.textContent=Object.keys(p.code||{}).length;depEl.textContent=Object.keys(p.dependencies||{}).length}catch{codeEl.textContent='—';depEl.textContent='—'}
 go.onclick=async()=>{
  go.disabled=true;openLink.style.display='none';
@@ -56,7 +83,7 @@ go.onclick=async()=>{
   const state=await snack.getStateAsync();
   const id=result?.id||result?.snackId||result?.accountSnackId||state?.id;
   if(!id)throw new Error('Snack saved without a readable ID.');
-  setStatus(`4/4 · DONE ✅\nXXL PASS 1.0 · Arena Takedown\nSnack ID: ${id}\nFiles: ${Object.keys(state.files||{}).length}\nDependencies: ${Object.keys(state.dependencies||{}).length}`,'ok');
+  setStatus(`4/4 · DONE ✅\nXXL PASS 1.0.1 · Arena Takedown\nSnack ID: ${id}\nFiles: ${Object.keys(state.files||{}).length}\nDependencies: ${Object.keys(state.dependencies||{}).length}`,'ok');
   openLink.href='https://snack.expo.dev/'+id;openLink.style.display='block';
  }catch(e){setStatus('CREATE FAILED ❌\n'+(e?.message||String(e)),'error')}finally{go.disabled=false}
 };
