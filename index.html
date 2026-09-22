@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>XXL PASS 1.0 → Expo Snack</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff;background:#050505}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:18px;display:grid;place-items:center;background:radial-gradient(circle at 80% 0,#4b0714 0,transparent 34%),radial-gradient(circle at 0 70%,#18181e 0,transparent 34%),#050505}
+main{width:min(820px,100%);background:#0d0d11e8;border:1px solid #ffffff18;border-radius:34px;padding:28px;box-shadow:0 30px 100px #000a;backdrop-filter:blur(26px)}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}.brand{font-size:11px;font-weight:900;letter-spacing:2.1px;color:#9c9ca6}.version{font-size:11px;font-weight:900;padding:9px 12px;border-radius:999px;background:#fff;color:#050505}.hero{font-size:clamp(42px,8vw,72px);line-height:.88;letter-spacing:-4px;margin:18px 0 14px;font-weight:1000}.sub{color:#a4a4ad;line-height:1.55;max-width:650px}.live{color:#ff6677}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:28px 0 16px}.stat{padding:18px;border-radius:22px;background:#141419;border:1px solid #ffffff0d;text-align:center}.stat b{display:block;font-size:25px}.stat span{display:block;margin-top:6px;font-size:9px;font-weight:900;letter-spacing:1.3px;color:#74747e}
+.features{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin:16px 0 22px}.feature{padding:14px;border-radius:18px;border:1px solid #ffffff10;background:#101014;color:#9d9da6;font-size:12px;line-height:1.45}.feature b{color:#fff}
+button,.open{width:100%;min-height:58px;border-radius:19px;border:0;font-weight:900;font-size:14px;cursor:pointer}.go{background:#fff;color:#050505}.go:disabled{opacity:.45}.open{display:none;margin-top:10px;text-decoration:none;text-align:center;padding:18px;background:#17171c;color:#fff;border:1px solid #ffffff16}.status{white-space:pre-wrap;margin:12px 0 0;padding:15px;border-radius:18px;background:#131318;color:#a8a8b0;font-size:12px;line-height:1.55;min-height:54px}.status.ok{background:#0e2118;color:#9fe3b8}.status.error{background:#2a1015;color:#ff9aa6}.note{margin-top:15px;color:#676771;font-size:10px;line-height:1.5}
+@media(max-width:580px){main{padding:22px;border-radius:28px}.features{grid-template-columns:1fr}.hero{letter-spacing:-2.8px}.stats{gap:7px}.stat{padding:14px 8px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div class="brand">XXL CZECHIA · PASS</div><div class="version">1.0.0</div></div>
+  <h1 class="hero">ARENA<br><span class="live">TAKEDOWN.</span></h1>
+  <p class="sub">Create the full XXL PASS 1.0 Expo Snack from this GitHub Pages launcher. Includes festival Home, LIVE mode, digital pass, lineup, timetable, concept venue map, merch reservations, rewards, crew and memories.</p>
+  <div class="stats"><div class="stat"><b id="code">—</b><span>CODE FILES</span></div><div class="stat"><b id="dep">—</b><span>DEPENDENCIES</span></div><div class="stat"><b>10+</b><span>EXPERIENCES</span></div></div>
+  <div class="features">
+    <div class="feature"><b>XXL PASS</b> · digital ticket and entry-code prototype</div>
+    <div class="feature"><b>LIVE mode</b> · event-day Home transformation preview</div>
+    <div class="feature"><b>My XXL</b> · favourites, reminders and personal timetable</div>
+    <div class="feature"><b>Festival hub</b> · map, merch, rewards, crew and memories</div>
+  </div>
+  <button class="go" id="go">Create new XXL PASS Snack</button>
+  <pre class="status" id="status">Ready · XXL PASS 1.0 payload is loaded from this Pages deployment.</pre>
+  <a class="open" id="open" target="_blank" rel="noopener">Open new Snack</a>
+  <div class="note">This launcher creates a new Snack and does not modify existing projects. Ticket QR, crew location, payments and Wallet integration are prototype-only until connected to production services.</div>
+</main>
+<script type="module">
+const go=document.querySelector('#go'),statusEl=document.querySelector('#status'),openLink=document.querySelector('#open'),codeEl=document.querySelector('#code'),depEl=document.querySelector('#dep');
+const setStatus=(t,k='')=>{statusEl.textContent=t;statusEl.className='status '+k};
+async function loadSdk(){try{return await import('https://cdn.jsdelivr.net/npm/snack-sdk@6.6.2/+esm')}catch{return await import('https://esm.sh/snack-sdk@6.6.2?bundle')}}
+async function readPayload(){const url=new URL('./snack-payload-1.0.0.json',location.href);const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('Payload HTTP '+r.status);return r.json()}
+try{const p=await readPayload();codeEl.textContent=Object.keys(p.code||{}).length;depEl.textContent=Object.keys(p.dependencies||{}).length}catch{codeEl.textContent='—';depEl.textContent='—'}
+go.onclick=async()=>{
+ go.disabled=true;openLink.style.display='none';
+ try{
+  setStatus('1/4 · Loading XXL PASS payload…');
+  const payload=await readPayload();
+  const files=payload.code||{},dependencies=payload.dependencies||{};
+  const codeCount=Object.keys(files).length,depCount=Object.keys(dependencies).length;
+  if(!files['App.js']||codeCount<5)throw new Error('XXL PASS payload is incomplete.');
+  codeEl.textContent=codeCount;depEl.textContent=depCount;
+  setStatus(`2/4 · ${codeCount} files / ${depCount} dependencies\nLoading Expo Snack SDK…`);
+  const {Snack}=await loadSdk();
+  setStatus('3/4 · Building a new Expo Snack…');
+  const snack=new Snack({name:payload.manifest.name,description:payload.manifest.description,sdkVersion:payload.manifest.sdkVersion||'54.0.0',files,dependencies,online:false});
+  const result=await snack.saveAsync({ignoreUser:true,isDraft:false});
+  const state=await snack.getStateAsync();
+  const id=result?.id||result?.snackId||result?.accountSnackId||state?.id;
+  if(!id)throw new Error('Snack saved without a readable ID.');
+  setStatus(`4/4 · DONE ✅\nXXL PASS 1.0 · Arena Takedown\nSnack ID: ${id}\nFiles: ${Object.keys(state.files||{}).length}\nDependencies: ${Object.keys(state.dependencies||{}).length}`,'ok');
+  openLink.href='https://snack.expo.dev/'+id;openLink.style.display='block';
+ }catch(e){setStatus('CREATE FAILED ❌\n'+(e?.message||String(e)),'error')}finally{go.disabled=false}
+};
+</script>
+</body>
+</html>

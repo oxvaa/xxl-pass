@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "XXL PASS",
+    "slug": "xxl-pass",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#050505",
+    "ios": { "supportsTablet": true },
+    "android": { "adaptiveIcon": { "backgroundColor": "#050505" } },
+    "web": { "bundler": "metro" }
+  }
+}
