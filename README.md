@@ -1,16 +1,22 @@
-# XXL PASS 2.0
+# XXL PASS 2.5 — LIVE EXPERIENCE
 
-## Identity & Experience
-- Safe Area architecture for modern iPhones
-- Animated XXL startup
-- Immersive Arena Takedown Home
-- Event LIVE mode
-- Holographic / animated XXL PASS
-- Rebuilt lineup with filters + My XXL
-- Timeline schedule
-- Tile-based XXL Hub
-- Rewards, Crew, Merch, Venue Map, Memories
-- Expo SDK 57 launcher
+## New in 2.5
+- Home states: BEFORE / LIVE / AFTER
+- XXL Radar live event feed
+- Stage Mode with crowd signal
+- Live crowd / queue cards
+- XXL Missions + XP
+- Secret Drops with unlock requirements
+- XXL After Hours secret access
+- Dynamic pass tiers: GA / GA+ / VIP / VIP+ / BACKSTAGE
+- XXL Wallet: balance, spend demo, vouchers, access
+- Transport Hub
+- Emergency / Need Help mode
+- Persistent local state via AsyncStorage
+- Expo SDK 57 + Safe Area architecture
 
-Upload all files/folders to `oxvaa/xxl-pass` and commit to `main`.
-Then open: https://oxvaa.github.io/xxl-pass/
+## Upload
+Replace the project files in `oxvaa/xxl-pass` with this package and commit to `main`.
+
+Then open:
+https://oxvaa.github.io/xxl-pass/
