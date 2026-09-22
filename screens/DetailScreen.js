@@ -1,120 +1,124 @@
 import React from 'react';
 import {View,Pressable,StyleSheet,Switch} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
 import {Ionicons} from '@expo/vector-icons';
 import {Screen,Txt,GlassCard,Pill,Button,SectionTitle} from '../components/UI';
-import {COLORS} from '../theme';
-import {ARTISTS,MAP_SPOTS,MERCH,REWARDS,ANNOUNCEMENTS} from '../data';
+import {COLORS,GRADIENTS} from '../theme';
+import {ARTISTS,MAP_SPOTS,MERCH,REWARDS,ANNOUNCEMENTS,RADAR,CROWD,MISSIONS,SECRET_DROPS,AFTER_HOURS,PASS_TIERS} from '../data';
 
-export default function DetailScreen({route,state,actions,goBack}){
+export default function DetailScreen({route,state,actions,navigate,goBack}){
  if(route.name==='artist')return <Artist route={route} state={state} actions={actions} goBack={goBack}/>;
  if(route.name==='map')return <Map goBack={goBack}/>;
  if(route.name==='merch')return <Merch state={state} actions={actions} goBack={goBack}/>;
  if(route.name==='rewards')return <Rewards state={state} goBack={goBack}/>;
  if(route.name==='crew')return <Crew state={state} actions={actions} goBack={goBack}/>;
  if(route.name==='notifications')return <Notifications goBack={goBack}/>;
- if(route.name==='memories')return <Memories goBack={goBack}/>;
+ if(route.name==='memories')return <Memories state={state} goBack={goBack}/>;
+ if(route.name==='radar')return <Radar navigate={navigate} goBack={goBack}/>;
+ if(route.name==='stage')return <Stage state={state} navigate={navigate} goBack={goBack}/>;
+ if(route.name==='wallet')return <Wallet state={state} actions={actions} goBack={goBack}/>;
+ if(route.name==='missions')return <Missions state={state} actions={actions} navigate={navigate} goBack={goBack}/>;
+ if(route.name==='secret')return <Secret state={state} actions={actions} navigate={navigate} goBack={goBack}/>;
+ if(route.name==='afterhours')return <AfterHours state={state} actions={actions} goBack={goBack}/>;
+ if(route.name==='transport')return <Transport goBack={goBack}/>;
+ if(route.name==='emergency')return <Emergency goBack={goBack}/>;
  return <Profile state={state} actions={actions} goBack={goBack}/>;
 }
 
-function Header({title,sub,goBack,right}){
- return <View style={styles.header}><Pressable onPress={goBack} style={styles.back}><Ionicons name="chevron-back" size={20} color="#fff"/></Pressable><View style={{flex:1}}><Txt faint style={styles.headSub}>{sub}</Txt><Txt style={styles.headTitle}>{title}</Txt></View>{right||<View style={{width:42}}/>}</View>
-}
+function Header({title,sub,goBack,right}){return <View style={styles.header}><Pressable onPress={goBack} style={styles.back}><Ionicons name="chevron-back" size={20} color="#fff"/></Pressable><View style={{flex:1}}><Txt faint style={styles.headSub}>{sub}</Txt><Txt style={styles.headTitle}>{title}</Txt></View>{right||<View style={{width:42}}/>}</View>}
 
-function Artist({route,state,actions,goBack}){
- const a=ARTISTS.find(x=>x.id===route.params?.artistId)||ARTISTS[0];
- const fav=state.favourites.includes(a.id);
- return <Screen><Header title={a.name} sub={a.tag} goBack={goBack}/>
-  <GlassCard style={styles.artistHero}><View style={[styles.glow,{backgroundColor:a.accent}]}/><Txt faint style={styles.artistMeta}>{a.stage} · {a.time}</Txt><Txt style={styles.artistName}>{a.name}</Txt><Txt muted style={styles.artistBio}>{a.bio}</Txt><View style={styles.artistRank}><Txt faint style={{fontSize:8,fontWeight:'900'}}>SLOT</Txt><Txt style={{fontSize:24,fontWeight:'900'}}>#{a.rank}</Txt></View></GlassCard>
-  <Button title={fav?'REMOVE FROM MY XXL':'ADD TO MY XXL'} icon={fav?'heart':'heart-outline'} onPress={()=>actions.toggleFavourite(a.id)} style={{marginTop:12}}/>
-  <Button title="REMIND ME 15 MIN BEFORE" secondary icon="notifications-outline" onPress={()=>actions.toggleReminder('artist:'+a.id)} style={{marginTop:9}}/>
+function Radar({navigate,goBack}){
+ return <Screen><Header title="XXL RADAR" sub="RIGHT NOW" goBack={goBack}/>
+  <LinearGradient colors={GRADIENTS.heroLive} style={styles.radarHero}><Pill danger>● LIVE SIGNAL</Pill><Txt style={styles.radarBig}>THE NIGHT{`\n`}MOVES FAST.</Txt><Txt muted style={styles.radarHeroCopy}>Live sets, queues, surprise unlocks, drops and access alerts in one feed.</Txt></LinearGradient>
+  <SectionTitle eyebrow="LIVE FEED" title="Happening now"/>
+  {RADAR.map(r=><Pressable key={r.id} onPress={()=>navigate(r.route,r.route==='stage'?{stage:'MAIN STAGE'}:undefined)} style={styles.feed}><View style={styles.feedIcon}><Ionicons name={r.icon} size={19} color="#fff"/></View><View style={{flex:1}}><Txt faint style={styles.feedMeta}>{r.type} · {r.time}</Txt><Txt style={styles.feedTitle}>{r.title}</Txt><Txt muted style={styles.feedBody}>{r.body}</Txt></View><Ionicons name="chevron-forward" size={16} color={COLORS.faint}/></Pressable>)}
  </Screen>
 }
 
-function Map({goBack}){
- const [selected,setSelected]=React.useState(MAP_SPOTS[1]);
- return <Screen><Header title="VENUE MAP" sub="ARENA TAKEDOWN" goBack={goBack}/>
-  <GlassCard style={styles.map}><View style={styles.arena}><Txt faint style={styles.mapTitle}>OSTRAVAR ARÉNA · CONCEPT MAP</Txt><View style={styles.stage}><Txt style={{fontSize:9,fontWeight:'900'}}>MAIN STAGE</Txt></View>{MAP_SPOTS.map(p=><Pressable key={p.id} onPress={()=>setSelected(p)} style={[styles.pin,{left:`${p.x}%`,top:`${p.y}%`},selected.id===p.id&&styles.pinActive]}><Txt style={[styles.pinText,selected.id===p.id&&{color:'#050506'}]}>{p.zone}</Txt></Pressable>)}</View></GlassCard>
-  <GlassCard style={{marginTop:10}}><View style={styles.detailRow}><View style={styles.detailIcon}><Ionicons name={selected.icon} size={20} color="#fff"/></View><View style={{flex:1}}><Txt style={{fontWeight:'900',fontSize:16}}>{selected.name}</Txt><Txt muted style={{fontSize:10,marginTop:4}}>{selected.sub}</Txt></View><Pill>ZONE {selected.zone}</Pill></View></GlassCard>
-  <SectionTitle eyebrow="LOCATIONS" title="All venue points"/>
-  {MAP_SPOTS.map(p=><Pressable key={p.id} onPress={()=>setSelected(p)} style={styles.location}><Ionicons name={p.icon} size={18} color="#fff"/><View style={{flex:1}}><Txt style={{fontWeight:'800'}}>{p.name}</Txt><Txt muted style={{fontSize:10,marginTop:2}}>{p.sub}</Txt></View><Txt faint style={{fontWeight:'900'}}>{p.zone}</Txt></Pressable>)}
+function Stage({state,navigate,goBack}){
+ return <Screen><Header title="MAIN STAGE" sub="STAGE MODE" goBack={goBack} right={<Pill danger>● LIVE</Pill>}/>
+  <LinearGradient colors={GRADIENTS.heroLive} style={styles.stageHero}><Txt faint style={styles.stageEyebrow}>NOW PLAYING · 20:14</Txt><Txt style={styles.stageArtist}>ARTIST 03</Txt><Txt muted style={{fontSize:11,marginTop:7}}>20:00 — 20:45 · 31 min remaining</Txt><View style={styles.liveBar}><View style={styles.liveFill}/></View><View style={styles.liveTimes}><Txt faint style={styles.tiny}>20:00</Txt><Txt faint style={styles.tiny}>20:45</Txt></View></LinearGradient>
+  <SectionTitle eyebrow="CROWD SIGNAL" title="Live arena pulse"/>
+  <View style={styles.grid2}>{CROWD.map(c=><GlassCard key={c.id} style={styles.crowdCard}><Txt faint style={styles.miniLabel}>{c.name}</Txt><Txt style={{fontSize:15,fontWeight:'900',marginTop:6}}>{c.status}</Txt><View style={styles.crowdBar}><View style={[styles.crowdFill,{width:`${c.level*100}%`,backgroundColor:c.color}]}/></View><Txt muted style={{fontSize:8,marginTop:7}}>{c.wait}</Txt></GlassCard>)}</View>
+  <SectionTitle eyebrow="NEXT" title="Keep moving"/>
+  <GlassCard><Txt faint style={styles.miniLabel}>21:15 · MAIN STAGE</Txt><Txt style={{fontSize:21,fontWeight:'900',marginTop:6}}>SPECIAL GUEST TBA</Txt><Txt muted style={{fontSize:10,marginTop:5}}>Set a reminder in Schedule so you do not miss the reveal.</Txt></GlassCard>
+  <Button title="OPEN XXL RADAR" secondary icon="radio-outline" onPress={()=>navigate('radar')} style={{marginTop:10}}/>
  </Screen>
 }
 
-function Merch({state,actions,goBack}){
- return <Screen><Header title="XXL MERCH" sub="ARENA TAKEDOWN CAPSULE" goBack={goBack}/><SectionTitle eyebrow="DROP 01" title="Event-exclusive pieces"/>
-  {MERCH.map(m=>{const reserved=state.reservedMerch.includes(m.id);return <GlassCard key={m.id} style={styles.merchCard}><View style={styles.merchArt}><Txt style={{fontSize:46,fontWeight:'900',letterSpacing:-3}}>XXL</Txt><Txt faint style={{fontSize:8,fontWeight:'900',letterSpacing:2}}>{m.tag}</Txt></View><View style={styles.merchBody}><Txt faint style={{fontSize:8,fontWeight:'900'}}>{m.size}</Txt><Txt style={{fontSize:18,fontWeight:'900',marginTop:5}}>{m.name}</Txt><View style={styles.merchFoot}><Txt style={{fontSize:16,fontWeight:'900'}}>{m.price.toLocaleString('cs-CZ')} Kč</Txt><Pressable onPress={()=>actions.toggleMerch(m.id)} style={[styles.reserve,reserved&&styles.reserveOn]}><Txt style={{fontSize:8,fontWeight:'900',color:reserved?'#050506':'#fff'}}>{reserved?'RESERVED':'RESERVE'}</Txt></Pressable></View></View></GlassCard>})}
+function Wallet({state,actions,goBack}){
+ const tier=PASS_TIERS[state.passTier]||PASS_TIERS.GA;
+ return <Screen><Header title="XXL WALLET" sub="CASHLESS + ACCESS" goBack={goBack}/>
+  <LinearGradient colors={GRADIENTS.wallet} style={styles.walletHero}><Txt faint style={styles.miniLabel}>AVAILABLE BALANCE</Txt><Txt style={styles.balance}>{state.walletBalance.toLocaleString('cs-CZ')} Kč</Txt><View style={styles.walletStats}><WalletStat n={`${state.walletSpend} Kč`} t="SPENT"/><WalletStat n={`${state.vouchers.length}`} t="VOUCHERS"/><WalletStat n={state.passTier} t="PASS"/></View></LinearGradient>
+  <View style={styles.walletBtns}><Button title="+ 500 Kč DEMO" onPress={()=>actions.addWallet(500)} style={{flex:1}}/><Button title="SPEND 120 Kč" secondary onPress={()=>actions.spendWallet(120)} style={{flex:1}}/></View>
+  <SectionTitle eyebrow="VOUCHERS" title="Ready to use"/>
+  {state.vouchers.map(v=><GlassCard key={v} style={styles.voucher}><View><Txt faint style={styles.miniLabel}>XXL BENEFIT</Txt><Txt style={{fontSize:17,fontWeight:'900',marginTop:5}}>{v==='WELCOME10'?'10% MERCH':'FREE WATER'}</Txt><Txt muted style={{fontSize:9,marginTop:4}}>Code · {v}</Txt></View><View style={styles.voucherBadge}><Ionicons name="qr-code-outline" size={20} color="#050506"/></View></GlassCard>)}
+  <SectionTitle eyebrow="ACCESS" title={tier.label}/>
+  <GlassCard><Txt faint style={styles.miniLabel}>ZONE {tier.zone}</Txt><Txt style={{fontSize:18,fontWeight:'900',marginTop:6}}>{tier.access}</Txt><Txt muted style={{fontSize:10,marginTop:5}}>Pass and cashless wallet stay linked in this prototype.</Txt></GlassCard>
  </Screen>
 }
 
-function Rewards({state,goBack}){
- return <Screen><Header title="XXL REWARDS" sub="MEMBER LEVEL" goBack={goBack} right={<Pill>{state.points} XP</Pill>}/>
-  <GlassCard style={styles.levelCard}><View style={styles.levelRing}><Txt style={{fontSize:25,fontWeight:'900'}}>{state.level}</Txt></View><View style={{flex:1}}><Txt faint style={{fontSize:8,fontWeight:'900',letterSpacing:1.2}}>CURRENT LEVEL</Txt><Txt style={{fontSize:24,fontWeight:'900',marginTop:4}}>XXL INSIDER</Txt><Txt muted style={{fontSize:10,lineHeight:16,marginTop:6}}>Earn XP from event activity, merch and future XXL drops.</Txt></View></GlassCard>
-  <SectionTitle eyebrow="REDEEM" title="Member rewards"/>
-  {REWARDS.map(r=><GlassCard key={r.id} style={{marginBottom:9}}><View style={styles.detailRow}><View style={styles.detailIcon}><Ionicons name={r.icon} size={20} color="#fff"/></View><View style={{flex:1}}><Txt style={{fontWeight:'900'}}>{r.name}</Txt><Txt muted style={{fontSize:10,marginTop:3}}>{r.points} XP</Txt></View><Pill active={state.points>=r.points}>{state.points>=r.points?'UNLOCKED':'LOCKED'}</Pill></View></GlassCard>)}
+function Missions({state,actions,navigate,goBack}){
+ const done=state.completedMissions.length;
+ return <Screen><Header title="MISSIONS" sub="XXL XP" goBack={goBack} right={<Pill>{state.points} XP</Pill>}/>
+  <GlassCard style={styles.missionHero}><View style={styles.missionRing}><Txt style={{fontSize:26,fontWeight:'900'}}>{done}</Txt><Txt faint style={{fontSize:7,fontWeight:'900'}}>OF 5</Txt></View><View style={{flex:1}}><Txt style={{fontSize:21,fontWeight:'900'}}>Unlock the night.</Txt><Txt muted style={{fontSize:10,lineHeight:16,marginTop:5}}>Complete missions to earn XP, reveal Secret Drops and unlock After Hours.</Txt></View></GlassCard>
+  <SectionTitle eyebrow="EVENT MISSIONS" title="Your run"/>
+  {MISSIONS.map(m=>{const complete=state.completedMissions.includes(m.id);return <GlassCard key={m.id} style={styles.missionRow}><View style={[styles.missionIcon,complete&&{backgroundColor:'#fff'}]}><Ionicons name={complete?'checkmark':m.icon} size={19} color={complete?'#050506':'#fff'}/></View><View style={{flex:1}}><Txt style={{fontWeight:'900'}}>{m.title}</Txt><Txt muted style={{fontSize:9,lineHeight:15,marginTop:3}}>{m.body}</Txt><Txt faint style={{fontSize:8,fontWeight:'900',marginTop:5}}>+{m.xp} XP</Txt></View><Pressable disabled={complete} onPress={()=>actions.completeMission(m.id)} style={[styles.claim,complete&&styles.claimed]}><Txt style={{fontSize:8,fontWeight:'900',color:complete?'#050506':'#fff'}}>{complete?'DONE':'COMPLETE'}</Txt></Pressable></GlassCard>})}
+  <Button title="OPEN SECRET DROPS" secondary icon="eye-outline" onPress={()=>navigate('secret')} style={{marginTop:4}}/>
  </Screen>
 }
 
-function Crew({state,actions,goBack}){
- const crew=[['Šimi','YOU','Entrance'],['Alex','ONLINE','Main Stage'],['Tom','ONLINE','Merch'],['Isa','OFFLINE','—']];
- return <Screen><Header title="MY CREW" sub="XXL TOGETHER" goBack={goBack}/>
-  <GlassCard><View style={styles.detailRow}><View style={{flex:1}}><Txt style={{fontWeight:'900',fontSize:16}}>Share my festival zone</Txt><Txt muted style={{fontSize:10,lineHeight:16,marginTop:4}}>Only share your selected venue zone with your crew.</Txt></View><Switch value={state.crewShare} onValueChange={actions.setCrewShare} trackColor={{false:'#2A2A30',true:'#FF334D'}} thumbColor="#fff"/></View></GlassCard>
-  <SectionTitle eyebrow="4 MEMBERS" title="Crew status"/>
-  {crew.map((c,i)=><View key={c[0]} style={styles.crewRow}><View style={styles.crewAvatar}><Txt style={{fontWeight:'900'}}>{c[0][0]}</Txt></View><View style={{flex:1}}><Txt style={{fontWeight:'900'}}>{c[0]}</Txt><Txt faint style={{fontSize:8,marginTop:3}}>{c[1]}</Txt></View><View style={{alignItems:'flex-end'}}><Txt style={{fontWeight:'800',fontSize:10}}>{i===0?(state.crewShare?'Entrance':'Hidden'):c[2]}</Txt><Txt faint style={{fontSize:8,marginTop:3}}>ZONE</Txt></View></View>)}
+function Secret({state,actions,navigate,goBack}){
+ const done=state.completedMissions.length;
+ return <Screen><Header title="SECRET DROPS" sub="XXL HIDDEN" goBack={goBack}/>
+  <GlassCard style={styles.secretHero}><Ionicons name="eye-outline" size={30} color="#fff"/><Txt style={styles.secretTitle}>NOT EVERYTHING{`\n`}IS ON THE POSTER.</Txt><Txt muted style={{fontSize:10,lineHeight:16,marginTop:8}}>Complete missions to reveal arena-only digital and physical rewards.</Txt></GlassCard>
+  <SectionTitle eyebrow={`${done} MISSIONS COMPLETE`} title="Hidden unlocks"/>
+  {SECRET_DROPS.map(s=>{const unlocked=done>=s.require;const claimed=state.claimedSecrets.includes(s.id);return <GlassCard key={s.id} style={[styles.secretRow,!unlocked&&{opacity:.45}]}><View style={styles.secretIcon}><Ionicons name={unlocked?s.icon:'lock-closed-outline'} size={20} color="#fff"/></View><View style={{flex:1}}><Txt faint style={styles.miniLabel}>{unlocked?'UNLOCKED':`REQUIRES ${s.require} MISSIONS`}</Txt><Txt style={{fontSize:15,fontWeight:'900',marginTop:4}}>{unlocked?s.title:'HIDDEN DROP'}</Txt><Txt muted style={{fontSize:9,marginTop:4}}>{unlocked?s.sub:'Complete more missions to reveal.'}</Txt></View>{unlocked&&<Pressable onPress={()=>{actions.claimSecret(s.id);if(s.id==='secret4')actions.unlockAfterHours()}} style={[styles.claim,claimed&&styles.claimed]}><Txt style={{fontSize:8,fontWeight:'900',color:claimed?'#050506':'#fff'}}>{claimed?'CLAIMED':'CLAIM'}</Txt></Pressable>}</GlassCard>})}
+  <Button title="OPEN AFTER HOURS" secondary icon="moon-outline" onPress={()=>navigate('afterhours')} style={{marginTop:6}}/>
  </Screen>
 }
 
-function Notifications({goBack}){
- return <Screen><Header title="XXL NOW" sub="NOTIFICATIONS" goBack={goBack}/>{ANNOUNCEMENTS.map((a,i)=><GlassCard key={a.id} style={{marginBottom:9}}><View style={styles.detailRow}><View style={styles.detailIcon}><Ionicons name={a.type==='MERCH'?'shirt-outline':a.type==='DROP'?'sparkles-outline':'megaphone-outline'} size={19} color="#fff"/></View><View style={{flex:1}}><View style={{flexDirection:'row',justifyContent:'space-between'}}><Txt style={{fontWeight:'900',fontSize:15}}>{a.title}</Txt>{i<2&&<View style={styles.unread}/>}</View><Txt muted style={{fontSize:10,lineHeight:16,marginTop:5}}>{a.body}</Txt></View></View></GlassCard>)}</Screen>
+function AfterHours({state,actions,goBack}){
+ const unlocked=state.afterHoursUnlocked||state.claimedSecrets.includes('secret4');
+ return <Screen><Header title="AFTER HOURS" sub="XXL LATE NIGHT" goBack={goBack}/>
+  <LinearGradient colors={['#0A0A0D','#1B1124','#050506']} style={styles.afterHero}><Pill>{unlocked?'UNLOCKED':'LOCKED'}</Pill><Ionicons name={unlocked?'moon':'lock-closed-outline'} size={38} color="#fff" style={{marginTop:45}}/><Txt style={styles.afterTitle}>{AFTER_HOURS.title}</Txt><Txt muted style={{fontSize:11,marginTop:7}}>{AFTER_HOURS.time}</Txt><View style={styles.afterDivider}/><Txt faint style={styles.miniLabel}>LOCATION</Txt><Txt style={{fontSize:18,fontWeight:'900',marginTop:5}}>{unlocked?AFTER_HOURS.unlockedVenue:AFTER_HOURS.venue}</Txt><Txt muted style={{fontSize:10,marginTop:6}}>{unlocked?'Your pass has late-night access.':'Complete 4 missions or claim the final Secret Drop.'}</Txt></LinearGradient>
+  {!unlocked&&<Button title="SIMULATE UNLOCK" secondary icon="lock-open-outline" onPress={actions.unlockAfterHours} style={{marginTop:12}}/>}
+  {unlocked&&<><SectionTitle eyebrow="GUESTLIST" title="You're on it"/><GlassCard><Txt faint style={styles.miniLabel}>ACCESS</Txt><Txt style={{fontSize:19,fontWeight:'900',marginTop:5}}>{AFTER_HOURS.guestlist}</Txt><Txt muted style={{fontSize:10,marginTop:5}}>Show your active XXL PASS at the secret entrance.</Txt></GlassCard></>}
+ </Screen>
 }
 
-function Memories({goBack}){
- return <Screen><Header title="MEMORIES" sub="YOUR XXL RECAP" goBack={goBack}/><GlassCard style={styles.memory}><Txt faint style={{fontSize:8,fontWeight:'900',letterSpacing:1.6}}>POST-EVENT PREVIEW</Txt><Txt style={styles.memoryTitle}>YOU WERE{`\n`}THERE.</Txt><Txt muted style={{lineHeight:19,marginTop:12}}>After Arena Takedown, this becomes your personal recap with official media and event stats.</Txt></GlassCard><SectionTitle eyebrow="YOUR XXL 2027" title="Recap preview"/><View style={styles.stats}><Stat n="7" t="ARTISTS"/><Stat n="8H" t="IN ARENA"/><Stat n="3" t="DROPS"/><Stat n="2.4K" t="XP"/></View></Screen>
-}
+function Transport({goBack}){return <Screen><Header title="GET HOME" sub="TRANSPORT HUB" goBack={goBack}/><GlassCard><Service icon="car-outline" title="Taxi / rideshare pickup" sub="Use the signed pickup zone outside Gate A."/><Service icon="bus-outline" title="Night public transport" sub="Late services leave from the arena corridor."/><Service icon="location-outline" title="Parking" sub="Save your parking zone before entering." last/></GlassCard><SectionTitle eyebrow="SAFETY" title="Leaving together"/><GlassCard><Txt style={{fontSize:17,fontWeight:'900'}}>Crew check before you go.</Txt><Txt muted style={{fontSize:10,lineHeight:16,marginTop:5}}>Use My Crew to verify everyone has a route home before leaving the venue.</Txt></GlassCard></Screen>}
+function Emergency({goBack}){return <Screen><Header title="NEED HELP?" sub="SAFETY & SUPPORT" goBack={goBack}/><LinearGradient colors={['#3B0A12','#16080B']} style={styles.emergency}><Ionicons name="medkit-outline" size={30} color="#fff"/><Txt style={{fontSize:26,fontWeight:'900',marginTop:18}}>HELP IS CLOSE.</Txt><Txt muted style={{fontSize:11,lineHeight:18,marginTop:7}}>For immediate danger, contact local emergency services. Inside the festival, use the nearest security or first-aid point.</Txt></LinearGradient><SectionTitle eyebrow="ON SITE" title="Festival support"/><GlassCard><Service icon="medkit-outline" title="First Aid" sub="Zone + · east side of arena"/><Service icon="shield-outline" title="Security" sub="Available at every entrance and stage"/><Service icon="search-outline" title="Lost & Found" sub="Guest services near Main Entrance"/><Service icon="exit-outline" title="Emergency exits" sub="Follow venue staff and illuminated signage" last/></GlassCard></Screen>}
 
-function Profile({state,actions,goBack}){
- return <Screen><Header title="PROFILE" sub="XXL MEMBER" goBack={goBack}/><GlassCard><View style={styles.detailRow}><View style={styles.profileAvatar}><Txt style={{color:'#050506',fontWeight:'900'}}>ŠS</Txt></View><View style={{flex:1}}><Txt style={{fontSize:18,fontWeight:'900'}}>Šimon Szábo</Txt><Txt muted style={{fontSize:10,marginTop:3}}>XXL Insider · Pass XXL-001</Txt></View><Pill active>ACTIVE</Pill></View></GlassCard><SectionTitle eyebrow="PREFERENCES" title="Festival settings"/><GlassCard><Setting title="Preview LIVE mode" sub="Transform Home into event mode." value={state.livePreview} onValue={actions.setLive}/><Setting title="Share crew zone" sub="Show only your selected venue zone." value={state.crewShare} onValue={actions.setCrewShare} last/></GlassCard><Button title="RESET LOCAL DEMO DATA" secondary onPress={actions.reset} style={{marginTop:12}}/></Screen>
-}
+function Artist({route,state,actions,goBack}){const a=ARTISTS.find(x=>x.id===route.params?.artistId)||ARTISTS[0];const fav=state.favourites.includes(a.id);return <Screen><Header title={a.name} sub={a.tag} goBack={goBack}/><GlassCard style={styles.artistHero}><View style={[styles.glow,{backgroundColor:a.accent}]}/><Txt faint style={styles.feedMeta}>{a.stage} · {a.time}</Txt><Txt style={styles.artistName}>{a.name}</Txt><Txt muted style={styles.artistBio}>{a.bio}</Txt></GlassCard><Button title={fav?'REMOVE FROM MY XXL':'ADD TO MY XXL'} icon={fav?'heart':'heart-outline'} onPress={()=>actions.toggleFavourite(a.id)} style={{marginTop:12}}/><Button title="REMIND ME 15 MIN BEFORE" secondary icon="notifications-outline" onPress={()=>actions.toggleReminder('artist:'+a.id)} style={{marginTop:9}}/></Screen>}
+function Map({goBack}){const [selected,setSelected]=React.useState(MAP_SPOTS[1]);return <Screen><Header title="VENUE MAP" sub="ARENA TAKEDOWN" goBack={goBack}/><GlassCard style={styles.map}><View style={styles.arena}><Txt faint style={styles.mapTitle}>OSTRAVAR ARÉNA · CONCEPT MAP</Txt><View style={styles.stageBlock}><Txt style={{fontSize:9,fontWeight:'900'}}>MAIN STAGE</Txt></View>{MAP_SPOTS.map(p=><Pressable key={p.id} onPress={()=>setSelected(p)} style={[styles.pin,{left:`${p.x}%`,top:`${p.y}%`},selected.id===p.id&&styles.pinActive]}><Txt style={[styles.pinText,selected.id===p.id&&{color:'#050506'}]}>{p.zone}</Txt></Pressable>)}</View></GlassCard><GlassCard style={{marginTop:10}}><View style={styles.detailRow}><View style={styles.detailIcon}><Ionicons name={selected.icon} size={20} color="#fff"/></View><View style={{flex:1}}><Txt style={{fontWeight:'900',fontSize:16}}>{selected.name}</Txt><Txt muted style={{fontSize:10,marginTop:4}}>{selected.sub}</Txt></View><Pill>ZONE {selected.zone}</Pill></View></GlassCard><SectionTitle eyebrow="LOCATIONS" title="All venue points"/>{MAP_SPOTS.map(p=><Pressable key={p.id} onPress={()=>setSelected(p)} style={styles.location}><Ionicons name={p.icon} size={18} color="#fff"/><View style={{flex:1}}><Txt style={{fontWeight:'800'}}>{p.name}</Txt><Txt muted style={{fontSize:10,marginTop:2}}>{p.sub}</Txt></View><Txt faint style={{fontWeight:'900'}}>{p.zone}</Txt></Pressable>)}</Screen>}
+function Merch({state,actions,goBack}){return <Screen><Header title="XXL MERCH" sub="ARENA TAKEDOWN CAPSULE" goBack={goBack}/><SectionTitle eyebrow="DROP 01" title="Event-exclusive pieces"/>{MERCH.map(m=>{const reserved=state.reservedMerch.includes(m.id);return <GlassCard key={m.id} style={styles.merchCard}><View style={styles.merchArt}><Txt style={{fontSize:46,fontWeight:'900',letterSpacing:-3}}>XXL</Txt><Txt faint style={styles.miniLabel}>{m.tag}</Txt></View><View style={styles.merchBody}><Txt faint style={styles.miniLabel}>{m.size}</Txt><Txt style={{fontSize:18,fontWeight:'900',marginTop:5}}>{m.name}</Txt><View style={styles.merchFoot}><Txt style={{fontSize:16,fontWeight:'900'}}>{m.price.toLocaleString('cs-CZ')} Kč</Txt><Pressable onPress={()=>{actions.toggleMerch(m.id);actions.completeMission('mission3')}} style={[styles.claim,reserved&&styles.claimed]}><Txt style={{fontSize:8,fontWeight:'900',color:reserved?'#050506':'#fff'}}>{reserved?'RESERVED':'RESERVE'}</Txt></Pressable></View></View></GlassCard>})}</Screen>}
+function Rewards({state,goBack}){return <Screen><Header title="XXL REWARDS" sub="MEMBER LEVEL" goBack={goBack} right={<Pill>{state.points} XP</Pill>}/><GlassCard style={styles.levelCard}><View style={styles.levelRing}><Txt style={{fontSize:25,fontWeight:'900'}}>{state.level}</Txt></View><View style={{flex:1}}><Txt faint style={styles.miniLabel}>CURRENT LEVEL</Txt><Txt style={{fontSize:24,fontWeight:'900',marginTop:4}}>XXL INSIDER</Txt><Txt muted style={{fontSize:10,lineHeight:16,marginTop:6}}>Earn XP from event activity, merch and future XXL drops.</Txt></View></GlassCard><SectionTitle eyebrow="REDEEM" title="Member rewards"/>{REWARDS.map(r=><GlassCard key={r.id} style={{marginBottom:9}}><View style={styles.detailRow}><View style={styles.detailIcon}><Ionicons name={r.icon} size={20} color="#fff"/></View><View style={{flex:1}}><Txt style={{fontWeight:'900'}}>{r.name}</Txt><Txt muted style={{fontSize:10,marginTop:3}}>{r.points} XP</Txt></View><Pill active={state.points>=r.points}>{state.points>=r.points?'UNLOCKED':'LOCKED'}</Pill></View></GlassCard>)}</Screen>}
+function Crew({state,actions,goBack}){const crew=[['Šimi','YOU','Entrance'],['Alex','ONLINE','Main Stage'],['Tom','ONLINE','Merch'],['Isa','OFFLINE','—']];return <Screen><Header title="MY CREW" sub="XXL TOGETHER" goBack={goBack}/><GlassCard><View style={styles.detailRow}><View style={{flex:1}}><Txt style={{fontWeight:'900',fontSize:16}}>Share my festival zone</Txt><Txt muted style={{fontSize:10,lineHeight:16,marginTop:4}}>Only share your selected venue zone with your crew.</Txt></View><Switch value={state.crewShare} onValueChange={v=>{actions.setCrewShare(v);if(v)actions.completeMission('mission4')}} trackColor={{false:'#2A2A30',true:'#FF334D'}} thumbColor="#fff"/></View></GlassCard><SectionTitle eyebrow="4 MEMBERS" title="Crew status"/>{crew.map((c,i)=><View key={c[0]} style={styles.crewRow}><View style={styles.crewAvatar}><Txt style={{fontWeight:'900'}}>{c[0][0]}</Txt></View><View style={{flex:1}}><Txt style={{fontWeight:'900'}}>{c[0]}</Txt><Txt faint style={{fontSize:8,marginTop:3}}>{c[1]}</Txt></View><View style={{alignItems:'flex-end'}}><Txt style={{fontWeight:'800',fontSize:10}}>{i===0?(state.crewShare?'Entrance':'Hidden'):c[2]}</Txt><Txt faint style={{fontSize:8,marginTop:3}}>ZONE</Txt></View></View>)}</Screen>}
+function Notifications({goBack}){return <Screen><Header title="XXL NOW" sub="NOTIFICATIONS" goBack={goBack}/>{ANNOUNCEMENTS.map((a,i)=><GlassCard key={a.id} style={{marginBottom:9}}><View style={styles.detailRow}><View style={styles.detailIcon}><Ionicons name={a.type==='MERCH'?'shirt-outline':a.type==='DROP'?'sparkles-outline':'megaphone-outline'} size={19} color="#fff"/></View><View style={{flex:1}}><View style={{flexDirection:'row',justifyContent:'space-between'}}><Txt style={{fontWeight:'900',fontSize:15}}>{a.title}</Txt>{i<2&&<View style={styles.unread}/>}</View><Txt muted style={{fontSize:10,lineHeight:16,marginTop:5}}>{a.body}</Txt></View></View></GlassCard>)}</Screen>}
+function Memories({state,goBack}){return <Screen><Header title="MEMORIES" sub="YOUR XXL RECAP" goBack={goBack}/><GlassCard style={styles.memory}><Txt faint style={styles.miniLabel}>YOUR XXL 2027</Txt><Txt style={styles.memoryTitle}>YOU WERE{`\n`}THERE.</Txt><Txt muted style={{lineHeight:19,marginTop:12}}>Your personal event recap is ready to become a shareable story.</Txt></GlassCard><SectionTitle eyebrow="NIGHT STATS" title="Arena Takedown"/><View style={styles.grid2}><Stat n="7" t="ARTISTS"/><Stat n="8H" t="IN ARENA"/><Stat n="14.2K" t="STEPS"/><Stat n={`${state.points}`} t="XP"/></View></Screen>}
+function Profile({state,actions,goBack}){return <Screen><Header title="PROFILE" sub="XXL MEMBER" goBack={goBack}/><GlassCard><View style={styles.detailRow}><View style={styles.profileAvatar}><Txt style={{color:'#050506',fontWeight:'900'}}>ŠS</Txt></View><View style={{flex:1}}><Txt style={{fontSize:18,fontWeight:'900'}}>Šimon Szábo</Txt><Txt muted style={{fontSize:10,marginTop:3}}>XXL Insider · {state.passTier} · {state.points} XP</Txt></View><Pill active>ACTIVE</Pill></View></GlassCard><SectionTitle eyebrow="PROTOTYPE" title="Experience controls"/><GlassCard><Setting title="Crew zone sharing" value={state.crewShare} onValue={actions.setCrewShare}/><Setting title="After Hours unlocked" value={state.afterHoursUnlocked} onValue={v=>v&&actions.unlockAfterHours()} last/></GlassCard><Button title="RESET LOCAL DEMO DATA" secondary onPress={actions.reset} style={{marginTop:12}}/></Screen>}
 
-function Setting({title,sub,value,onValue,last}){return <View style={[styles.setting,!last&&styles.settingBorder]}><View style={{flex:1}}><Txt style={{fontWeight:'900'}}>{title}</Txt><Txt muted style={{fontSize:10,lineHeight:16,marginTop:3}}>{sub}</Txt></View><Switch value={value} onValueChange={onValue} trackColor={{false:'#2A2A30',true:'#FF334D'}} thumbColor="#fff"/></View>}
-function Stat({n,t}){return <GlassCard style={styles.stat}><Txt style={{fontSize:25,fontWeight:'900'}}>{n}</Txt><Txt faint style={{fontSize:7,fontWeight:'900',letterSpacing:1.2,marginTop:5}}>{t}</Txt></GlassCard>}
+function Setting({title,value,onValue,last}){return <View style={[styles.setting,!last&&styles.settingBorder]}><Txt style={{flex:1,fontWeight:'900'}}>{title}</Txt><Switch value={value} onValueChange={onValue} trackColor={{false:'#2A2A30',true:'#FF334D'}} thumbColor="#fff"/></View>}
+function Service({icon,title,sub,last}){return <View style={[styles.service,!last&&{borderBottomWidth:1,borderColor:COLORS.border}]}><View style={styles.detailIcon}><Ionicons name={icon} size={19} color="#fff"/></View><View style={{flex:1}}><Txt style={{fontWeight:'900'}}>{title}</Txt><Txt muted style={{fontSize:9,lineHeight:15,marginTop:3}}>{sub}</Txt></View></View>}
+function WalletStat({n,t}){return <View style={{flex:1}}><Txt style={{fontSize:15,fontWeight:'900'}}>{n}</Txt><Txt faint style={{fontSize:7,fontWeight:'900',marginTop:3}}>{t}</Txt></View>}
+function Stat({n,t}){return <GlassCard style={styles.stat}><Txt style={{fontSize:24,fontWeight:'900'}}>{n}</Txt><Txt faint style={{fontSize:7,fontWeight:'900',letterSpacing:1.1,marginTop:5}}>{t}</Txt></GlassCard>}
 
 const styles=StyleSheet.create({
- header:{height:92,flexDirection:'row',alignItems:'center',gap:12},
- back:{height:42,width:42,borderRadius:21,backgroundColor:COLORS.panel2,borderWidth:1,borderColor:COLORS.border,alignItems:'center',justifyContent:'center'},
- headSub:{fontSize:8,fontWeight:'900',letterSpacing:1.5},
- headTitle:{fontSize:25,fontWeight:'900',letterSpacing:-1,marginTop:2},
- artistHero:{minHeight:390,justifyContent:'flex-end',overflow:'hidden'},
- glow:{position:'absolute',width:300,height:300,borderRadius:180,opacity:.11,right:-90,top:-80},
- artistMeta:{fontSize:9,fontWeight:'900',letterSpacing:1.4},
- artistName:{fontSize:40,fontWeight:'900',letterSpacing:-2,marginTop:9,maxWidth:'92%'},
- artistBio:{fontSize:12,lineHeight:19,marginTop:12,maxWidth:330},
- artistRank:{position:'absolute',top:18,right:18,alignItems:'flex-end'},
- map:{padding:10},
- arena:{height:430,borderRadius:24,backgroundColor:'#0B0B0E',borderWidth:1,borderColor:COLORS.border,alignItems:'center',paddingTop:20,overflow:'hidden'},
- mapTitle:{fontSize:8,fontWeight:'900',letterSpacing:1.8},
- stage:{position:'absolute',top:65,left:'24%',right:'24%',height:42,borderRadius:12,backgroundColor:COLORS.red,alignItems:'center',justifyContent:'center'},
- pin:{position:'absolute',marginLeft:-18,marginTop:-18,width:36,height:36,borderRadius:18,backgroundColor:'#19191F',borderWidth:1,borderColor:COLORS.borderStrong,alignItems:'center',justifyContent:'center'},
- pinActive:{backgroundColor:'#fff'},
- pinText:{fontSize:10,fontWeight:'900'},
- detailRow:{flexDirection:'row',alignItems:'center',gap:12},
- detailIcon:{width:40,height:40,borderRadius:14,backgroundColor:'rgba(255,255,255,.07)',alignItems:'center',justifyContent:'center'},
- location:{minHeight:60,flexDirection:'row',alignItems:'center',gap:12,borderBottomWidth:1,borderColor:COLORS.border},
- merchCard:{marginBottom:10,padding:0,overflow:'hidden'},
- merchArt:{height:188,alignItems:'center',justifyContent:'center',backgroundColor:'#09090C',borderBottomWidth:1,borderColor:COLORS.border},
- merchBody:{padding:17},
- merchFoot:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginTop:14},
- reserve:{borderRadius:999,borderWidth:1,borderColor:COLORS.borderStrong,paddingHorizontal:14,paddingVertical:10},
- reserveOn:{backgroundColor:'#fff'},
- levelCard:{flexDirection:'row',gap:16,alignItems:'center'},
- levelRing:{height:86,width:86,borderRadius:43,borderWidth:8,borderColor:'#fff',alignItems:'center',justifyContent:'center'},
- crewRow:{minHeight:74,flexDirection:'row',alignItems:'center',gap:12,borderBottomWidth:1,borderColor:COLORS.border},
- crewAvatar:{height:42,width:42,borderRadius:21,backgroundColor:COLORS.panel2,borderWidth:1,borderColor:COLORS.borderStrong,alignItems:'center',justifyContent:'center'},
- unread:{width:8,height:8,borderRadius:4,backgroundColor:COLORS.red},
- memory:{minHeight:330,justifyContent:'flex-end'},
- memoryTitle:{fontSize:40,fontWeight:'900',letterSpacing:-2.3,marginTop:14},
- stats:{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',gap:10},
- stat:{width:'48%',alignItems:'center'},
- profileAvatar:{height:56,width:56,borderRadius:28,backgroundColor:'#fff',alignItems:'center',justifyContent:'center'},
- setting:{minHeight:76,flexDirection:'row',alignItems:'center',gap:12},
- settingBorder:{borderBottomWidth:1,borderColor:COLORS.border},
+ header:{height:92,flexDirection:'row',alignItems:'center',gap:12},back:{height:42,width:42,borderRadius:21,backgroundColor:COLORS.panel2,borderWidth:1,borderColor:COLORS.border,alignItems:'center',justifyContent:'center'},headSub:{fontSize:8,fontWeight:'900',letterSpacing:1.5},headTitle:{fontSize:25,fontWeight:'900',letterSpacing:-1,marginTop:2},
+ radarHero:{minHeight:250,borderRadius:32,padding:20,borderWidth:1,borderColor:'rgba(255,255,255,.11)',justifyContent:'flex-end'},radarBig:{fontSize:36,fontWeight:'900',letterSpacing:-2,lineHeight:34,marginTop:40},radarHeroCopy:{fontSize:10,lineHeight:16,marginTop:8},
+ feed:{minHeight:82,flexDirection:'row',alignItems:'center',gap:11,borderBottomWidth:1,borderColor:COLORS.border},feedIcon:{height:42,width:42,borderRadius:14,backgroundColor:'rgba(255,255,255,.07)',alignItems:'center',justifyContent:'center'},feedMeta:{fontSize:7,fontWeight:'900',letterSpacing:1.2},feedTitle:{fontSize:14,fontWeight:'900',marginTop:3},feedBody:{fontSize:9,marginTop:3},
+ stageHero:{minHeight:300,borderRadius:34,padding:20,borderWidth:1,borderColor:'rgba(255,255,255,.11)',justifyContent:'flex-end'},stageEyebrow:{fontSize:8,fontWeight:'900',letterSpacing:1.4},stageArtist:{fontSize:42,fontWeight:'900',letterSpacing:-2.3,marginTop:8},liveBar:{height:5,borderRadius:5,backgroundColor:'rgba(255,255,255,.12)',overflow:'hidden',marginTop:24},liveFill:{width:'34%',height:'100%',backgroundColor:COLORS.red},liveTimes:{flexDirection:'row',justifyContent:'space-between',marginTop:7},tiny:{fontSize:8},
+ grid2:{flexDirection:'row',flexWrap:'wrap',gap:9,justifyContent:'space-between'},crowdCard:{width:'48.5%',padding:14},miniLabel:{fontSize:7,fontWeight:'900',letterSpacing:1.2},crowdBar:{height:4,borderRadius:4,backgroundColor:'rgba(255,255,255,.08)',overflow:'hidden',marginTop:13},crowdFill:{height:'100%'},
+ walletHero:{minHeight:230,borderRadius:34,padding:20,borderWidth:1,borderColor:COLORS.borderStrong,justifyContent:'flex-end'},balance:{fontSize:44,fontWeight:'900',letterSpacing:-2.4,marginTop:8},walletStats:{flexDirection:'row',paddingTop:20,marginTop:18,borderTopWidth:1,borderColor:COLORS.border},walletBtns:{flexDirection:'row',gap:9,marginTop:10},voucher:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:9},voucherBadge:{height:44,width:44,borderRadius:15,backgroundColor:'#fff',alignItems:'center',justifyContent:'center'},
+ missionHero:{flexDirection:'row',alignItems:'center',gap:14},missionRing:{height:78,width:78,borderRadius:39,borderWidth:6,borderColor:'#fff',alignItems:'center',justifyContent:'center'},missionRow:{marginBottom:9,flexDirection:'row',alignItems:'center',gap:11},missionIcon:{height:42,width:42,borderRadius:14,backgroundColor:'rgba(255,255,255,.07)',alignItems:'center',justifyContent:'center'},claim:{paddingHorizontal:12,paddingVertical:9,borderRadius:999,borderWidth:1,borderColor:COLORS.borderStrong},claimed:{backgroundColor:'#fff'},
+ secretHero:{minHeight:260,justifyContent:'flex-end'},secretTitle:{fontSize:31,fontWeight:'900',letterSpacing:-1.7,lineHeight:29,marginTop:24},secretRow:{marginBottom:9,flexDirection:'row',alignItems:'center',gap:11},secretIcon:{height:42,width:42,borderRadius:14,backgroundColor:'rgba(255,255,255,.07)',alignItems:'center',justifyContent:'center'},
+ afterHero:{minHeight:480,borderRadius:36,padding:22,borderWidth:1,borderColor:COLORS.borderStrong},afterTitle:{fontSize:38,fontWeight:'900',letterSpacing:-2,marginTop:16},afterDivider:{height:1,backgroundColor:COLORS.border,marginVertical:24},
+ emergency:{minHeight:260,borderRadius:32,padding:20,borderWidth:1,borderColor:'rgba(255,80,100,.2)',justifyContent:'flex-end'},
+ service:{minHeight:72,flexDirection:'row',alignItems:'center',gap:12},
+ artistHero:{minHeight:390,justifyContent:'flex-end',overflow:'hidden'},glow:{position:'absolute',width:300,height:300,borderRadius:180,opacity:.11,right:-90,top:-80},artistName:{fontSize:40,fontWeight:'900',letterSpacing:-2,marginTop:9,maxWidth:'92%'},artistBio:{fontSize:12,lineHeight:19,marginTop:12,maxWidth:330},
+ map:{padding:10},arena:{height:430,borderRadius:24,backgroundColor:'#0B0B0E',borderWidth:1,borderColor:COLORS.border,alignItems:'center',paddingTop:20,overflow:'hidden'},mapTitle:{fontSize:8,fontWeight:'900',letterSpacing:1.8},stageBlock:{position:'absolute',top:65,left:'24%',right:'24%',height:42,borderRadius:12,backgroundColor:COLORS.red,alignItems:'center',justifyContent:'center'},pin:{position:'absolute',marginLeft:-18,marginTop:-18,width:36,height:36,borderRadius:18,backgroundColor:'#19191F',borderWidth:1,borderColor:COLORS.borderStrong,alignItems:'center',justifyContent:'center'},pinActive:{backgroundColor:'#fff'},pinText:{fontSize:10,fontWeight:'900'},detailRow:{flexDirection:'row',alignItems:'center',gap:12},detailIcon:{width:40,height:40,borderRadius:14,backgroundColor:'rgba(255,255,255,.07)',alignItems:'center',justifyContent:'center'},location:{minHeight:60,flexDirection:'row',alignItems:'center',gap:12,borderBottomWidth:1,borderColor:COLORS.border},
+ merchCard:{marginBottom:10,padding:0,overflow:'hidden'},merchArt:{height:188,alignItems:'center',justifyContent:'center',backgroundColor:'#09090C',borderBottomWidth:1,borderColor:COLORS.border},merchBody:{padding:17},merchFoot:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginTop:14},
+ levelCard:{flexDirection:'row',gap:16,alignItems:'center'},levelRing:{height:86,width:86,borderRadius:43,borderWidth:8,borderColor:'#fff',alignItems:'center',justifyContent:'center'},crewRow:{minHeight:74,flexDirection:'row',alignItems:'center',gap:12,borderBottomWidth:1,borderColor:COLORS.border},crewAvatar:{height:42,width:42,borderRadius:21,backgroundColor:COLORS.panel2,borderWidth:1,borderColor:COLORS.borderStrong,alignItems:'center',justifyContent:'center'},unread:{width:8,height:8,borderRadius:4,backgroundColor:COLORS.red},
+ memory:{minHeight:330,justifyContent:'flex-end'},memoryTitle:{fontSize:40,fontWeight:'900',letterSpacing:-2.3,marginTop:14},stat:{width:'48.5%',alignItems:'center'},profileAvatar:{height:56,width:56,borderRadius:28,backgroundColor:'#fff',alignItems:'center',justifyContent:'center'},setting:{minHeight:68,flexDirection:'row',alignItems:'center',gap:12},settingBorder:{borderBottomWidth:1,borderColor:COLORS.border},
 });

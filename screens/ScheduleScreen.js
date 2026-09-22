@@ -9,14 +9,14 @@ export default function ScheduleScreen({state,actions}){
  const onlyMine=state.scheduleFilter==='mine';
  const visible=onlyMine?SCHEDULE.filter(x=>!x.artistId||state.favourites.includes(x.artistId)):SCHEDULE;
  return <Screen>
-  <View style={styles.header}><View><Txt faint style={styles.eyebrow}>ARENA TAKEDOWN · ONE NIGHT</Txt><Txt style={styles.title}>SCHEDULE</Txt></View><Pill danger={state.livePreview}>{state.livePreview?'● LIVE':'SEPT 2027'}</Pill></View>
+  <View style={styles.header}><View><Txt faint style={styles.eyebrow}>ARENA TAKEDOWN · ONE NIGHT</Txt><Txt style={styles.title}>SCHEDULE</Txt></View><Pill danger={state.eventPhase==='live'}>{state.eventPhase==='live'?'● LIVE':'SEPT 2027'}</Pill></View>
   <View style={styles.tabs}><Tab label="ALL SETS" active={!onlyMine} onPress={()=>actions.setScheduleFilter('all')}/><Tab label="MY XXL" active={onlyMine} onPress={()=>actions.setScheduleFilter('mine')}/></View>
 
   <View style={styles.dayCard}><View><Txt faint style={styles.dayEyebrow}>EVENT DAY</Txt><Txt style={styles.dayTitle}>SATURDAY</Txt></View><View style={{alignItems:'flex-end'}}><Txt style={styles.dayDate}>SEP</Txt><Txt style={styles.dayNum}>27</Txt></View></View>
 
   <View style={styles.timeline}>{visible.map((x,i)=>{
    const reminder=state.reminders.includes(x.id);
-   const isLive=state.livePreview&&x.id==='s4';
+   const isLive=state.eventPhase==='live'&&x.id==='s4';
    return <View key={x.id} style={styles.row}>
     <View style={styles.timeCol}><Txt style={[styles.time,isLive&&{color:COLORS.redSoft}]}>{x.time}</Txt><Txt faint style={styles.end}>{x.end}</Txt></View>
     <View style={styles.rail}><View style={[styles.dot,isLive&&styles.dotLive]}/>{i<visible.length-1&&<View style={[styles.vline,isLive&&{backgroundColor:'rgba(255,51,77,.35)'}]}/>}</View>
