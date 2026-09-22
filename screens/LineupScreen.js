@@ -1,58 +1,36 @@
 import React,{useState} from 'react';
 import {View,Pressable,StyleSheet} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import {Screen,Txt,Pill,SectionTitle,GlassCard} from '../components/UI';
-import {ARTISTS} from '../data';
+import {Screen,TopBar,Txt,GlassCard,Pill,SectionTitle} from '../components/UI';
+import {DAYS} from '../data';
 import {COLORS} from '../theme';
+import {t} from '../i18n';
 
 export default function LineupScreen({state,actions,navigate}){
- const [filter,setFilter]=useState('ALL');
- const list=ARTISTS.filter(a=>filter==='ALL'||filter==='MY XXL'&&state.favourites.includes(a.id)||filter==='MAIN'&&a.stage==='MAIN STAGE'||filter==='NEXT'&&a.stage==='NEXT STAGE');
+ const lang=state.language;
+ const [day,setDay]=useState('fri');
+ const d=DAYS.find(x=>x.id===day)||DAYS[0];
+ const all=[...d.headliners,...d.artists];
  return <Screen>
-  <View style={styles.header}><View><Txt faint style={styles.eyebrow}>XXL CZECHIA · 2027</Txt><Txt style={styles.title}>LINEUP</Txt></View><Pill>DROP 01</Pill></View>
-
-  <View style={styles.filters}>
-   {['ALL','MY XXL','MAIN','NEXT'].map(x=><Filter key={x} label={x} active={filter===x} onPress={()=>setFilter(x)}/>)}
-  </View>
-
-  <SectionTitle eyebrow={`${list.length} ARTIST SLOTS`} title={filter==='MY XXL'?'Your XXL':'Arena lineup'}/>
-  {list.map((a,i)=><ArtistCard key={a.id} a={a} featured={i===0&&filter!=='MY XXL'} favourite={state.favourites.includes(a.id)} onHeart={()=>actions.toggleFavourite(a.id)} onOpen={()=>navigate('artist',{artistId:a.id})}/>)}
+  <TopBar state={state} onProfile={()=>navigate('profile')} onNotifications={()=>navigate('notifications')}/>
+  <View style={styles.header}><View><Txt faint style={styles.eyebrow}>O2 ARENA PRAGUE</Txt><Txt style={styles.title}>LINEUP</Txt></View><Pill green>3 DAYS</Pill></View>
+  <View style={styles.tabs}>{DAYS.map(x=><Pressable key={x.id} onPress={()=>setDay(x.id)} style={[styles.tab,day===x.id&&styles.tabOn]}><Txt style={[styles.tabTxt,day===x.id&&{color:'#050506'}]}>{lang==='cs'?x.labelCs:x.labelEn}</Txt><Txt style={[styles.tabDate,day===x.id&&{color:'#333'}]}>{x.date}</Txt></Pressable>)}</View>
+  <SectionTitle eyebrow={`${all.length} ARTISTS`} title={d.headliners.join(' · ')} action={state.session?t(lang,'myXXL'):t(lang,'login')} onAction={()=>state.session?null:navigate('auth',{mode:'login'})}/>
+  {all.map((name,i)=>{
+   const fav=state.favourites.includes(name);
+   const head=i<d.headliners.length;
+   return <GlassCard key={name} style={[styles.artist,head&&styles.headliner]}>
+    <View style={[styles.accent,{backgroundColor:head?COLORS.green:COLORS.borderStrong}]}/>
+    <View style={{flex:1}}><Txt faint style={styles.small}>{head?'HEADLINER':d.date}</Txt><Txt style={[styles.name,head&&styles.headName]}>{name}</Txt><Txt muted style={{fontSize:9,marginTop:5}}>SET TIME · TBA</Txt></View>
+    <Pressable onPress={()=>{if(!state.session)return navigate('auth',{mode:'login'});actions.toggleFavourite(name);actions.completeMission('m2')}} style={[styles.heart,fav&&styles.heartOn]}><Ionicons name={fav?'heart':'heart-outline'} size={19} color={fav?'#050506':'#fff'}/></Pressable>
+   </GlassCard>
+  })}
+  <SectionTitle eyebrow="DJS" title="DJ lineup"/>
+  <GlassCard><Txt muted style={{fontSize:11,lineHeight:20}}>{d.djs.join(' · ')}</Txt></GlassCard>
  </Screen>
 }
-
-function ArtistCard({a,featured,favourite,onHeart,onOpen}){
- return <Pressable onPress={onOpen} style={({pressed})=>[styles.card,featured&&styles.featured,pressed&&{opacity:.88}]}>
-  <View style={[styles.accent,{backgroundColor:a.accent}]}/>
-  <View style={styles.rank}><Txt faint style={{fontSize:10,fontWeight:'900',letterSpacing:1.4}}>#{a.rank}</Txt></View>
-  <View style={{flex:1,paddingTop:featured?26:14}}>
-   <Txt faint style={styles.tag}>{a.tag}</Txt>
-   <Txt style={[styles.name,featured&&styles.nameFeatured]}>{a.name}</Txt>
-   <Txt muted style={styles.meta}>{a.stage} · {a.time}</Txt>
-  </View>
-  <Pressable onPress={e=>{e.stopPropagation?.();onHeart()}} style={[styles.heart,favourite&&styles.heartActive]}><Ionicons name={favourite?'heart':'heart-outline'} size={19} color={favourite?'#050506':'#fff'}/></Pressable>
-  {featured&&<View style={styles.bigType}><Txt style={{fontSize:84,fontWeight:'900',color:'rgba(255,255,255,.035)'}}>XXL</Txt></View>}
- </Pressable>
-}
-
-function Filter({label,active,onPress}){return <Pressable onPress={onPress} style={[styles.filter,active&&styles.filterActive]}><Txt style={[styles.filterText,active&&{color:'#050506'}]}>{label}</Txt></Pressable>}
-
 const styles=StyleSheet.create({
- header:{height:96,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
- eyebrow:{fontSize:9,fontWeight:'900',letterSpacing:1.7},
- title:{fontSize:43,fontWeight:'900',letterSpacing:-2.3,marginTop:2},
- filters:{flexDirection:'row',gap:7,flexWrap:'wrap'},
- filter:{paddingHorizontal:13,paddingVertical:9,borderRadius:999,borderWidth:1,borderColor:COLORS.borderStrong,backgroundColor:'rgba(255,255,255,.025)'},
- filterActive:{backgroundColor:'#fff',borderColor:'#fff'},
- filterText:{fontSize:9,fontWeight:'900',letterSpacing:.9},
- card:{minHeight:132,borderRadius:29,borderWidth:1,borderColor:COLORS.border,backgroundColor:COLORS.panel,marginBottom:10,padding:17,paddingLeft:21,flexDirection:'row',alignItems:'flex-start',overflow:'hidden'},
- featured:{minHeight:222,backgroundColor:'#111115'},
- accent:{position:'absolute',left:0,top:0,bottom:0,width:4},
- rank:{position:'absolute',right:18,bottom:16},
- tag:{fontSize:8,fontWeight:'900',letterSpacing:1.45},
- name:{fontSize:25,fontWeight:'900',letterSpacing:-1.15,marginTop:8,maxWidth:'82%'},
- nameFeatured:{fontSize:34,letterSpacing:-1.7,marginTop:12},
- meta:{fontSize:10,fontWeight:'800',marginTop:7},
- heart:{width:42,height:42,borderRadius:21,borderWidth:1,borderColor:COLORS.borderStrong,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(255,255,255,.04)',zIndex:2},
- heartActive:{backgroundColor:'#fff'},
- bigType:{position:'absolute',right:-20,top:73},
+ header:{height:94,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},eyebrow:{fontSize:8,fontWeight:'900',letterSpacing:1.5},title:{fontSize:43,fontWeight:'900',letterSpacing:-2.3,marginTop:2},
+ tabs:{flexDirection:'row',gap:7},tab:{flex:1,minHeight:57,borderRadius:19,borderWidth:1,borderColor:COLORS.borderStrong,alignItems:'center',justifyContent:'center'},tabOn:{backgroundColor:'#fff'},tabTxt:{fontSize:8,fontWeight:'900'},tabDate:{fontSize:7,color:COLORS.faint,marginTop:4},
+ artist:{marginBottom:9,flexDirection:'row',alignItems:'center',gap:11,overflow:'hidden'},headliner:{minHeight:135},accent:{position:'absolute',left:0,top:0,bottom:0,width:4},small:{fontSize:7,fontWeight:'900',letterSpacing:1.2},name:{fontSize:18,fontWeight:'900',letterSpacing:-.5,marginTop:5},headName:{fontSize:29,letterSpacing:-1.4},heart:{height:42,width:42,borderRadius:21,borderWidth:1,borderColor:COLORS.borderStrong,alignItems:'center',justifyContent:'center'},heartOn:{backgroundColor:'#fff'},
 });
