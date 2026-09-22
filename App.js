@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import { View, StatusBar, StyleSheet } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HomeScreen from './screens/HomeScreen';
 import LineupScreen from './screens/LineupScreen';
@@ -13,7 +14,7 @@ import { COLORS } from './theme';
 const STORAGE='xxl-pass-v1-state';
 const DEFAULT={favourites:['headliner'],reminders:['s6'],reservedMerch:[],points:2450,level:2,crewShare:false,livePreview:false,scheduleFilter:'all'};
 
-export default function App(){
+function XXLApp(){
  const [tab,setTab]=useState('home');
  const [route,setRoute]=useState(null);
  const [state,setState]=useState(DEFAULT);
@@ -43,7 +44,17 @@ export default function App(){
  else if(tab==='hub') content=<HubScreen state={state} actions={actions} navigate={navigate}/>;
  else content=<HomeScreen state={state} actions={actions} navigate={navigate}/>;
 
- return <View style={styles.app}><StatusBar barStyle="light-content" backgroundColor={COLORS.bg}/>{content}{!route&&<BottomNav tab={tab} onChange={navigate}/>}</View>;
+ return <View style={styles.app}>
+   <StatusBar barStyle="light-content" translucent backgroundColor="transparent"/>
+   {content}
+   {!route&&<BottomNav tab={tab} onChange={navigate}/>}
+ </View>;
+}
+
+export default function App(){
+ return <SafeAreaProvider>
+   <XXLApp/>
+ </SafeAreaProvider>;
 }
 
 const styles=StyleSheet.create({app:{flex:1,backgroundColor:COLORS.bg}});
