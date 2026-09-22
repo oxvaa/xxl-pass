@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#050505">
-<title>XXL PASS 1.0.1 → Expo Snack</title>
+<title>XXL PASS 1.0.2 → Expo Snack</title>
 <style>
 :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff;background:#050505}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;padding:18px;display:grid;place-items:center;background:radial-gradient(circle at 80% 0,#4b0714 0,transparent 34%),radial-gradient(circle at 0 70%,#18181e 0,transparent 34%),#050505}
@@ -18,7 +18,7 @@ button,.open{width:100%;min-height:58px;border-radius:19px;border:0;font-weight:
 </head>
 <body>
 <main>
-  <div class="top"><div class="brand">XXL CZECHIA · PASS</div><div class="version">1.0.1</div></div>
+  <div class="top"><div class="brand">XXL CZECHIA · PASS</div><div class="version">1.0.2</div></div>
   <h1 class="hero">ARENA<br><span class="live">TAKEDOWN.</span></h1>
   <p class="sub">Create the full XXL PASS 1.0 Expo Snack from this GitHub Pages launcher. Includes festival Home, LIVE mode, digital pass, lineup, timetable, concept venue map, merch reservations, rewards, crew and memories.</p>
   <div class="stats"><div class="stat"><b id="code">—</b><span>CODE FILES</span></div><div class="stat"><b id="dep">—</b><span>DEPENDENCIES</span></div><div class="stat"><b>10+</b><span>EXPERIENCES</span></div></div>
@@ -28,13 +28,14 @@ button,.open{width:100%;min-height:58px;border-radius:19px;border:0;font-weight:
     <div class="feature"><b>My XXL</b> · favourites, reminders and personal timetable</div>
     <div class="feature"><b>Festival hub</b> · map, merch, rewards, crew and memories</div>
   </div>
-  <button class="go" id="go">Create fixed XXL PASS 1.0.1 Snack</button>
-  <pre class="status" id="status">Ready · XXL PASS 1.0.1 startup hotfix. Uses the existing 1.0.0 payload and patches it before creating a new Snack.</pre>
-  <a class="open" id="open" target="_blank" rel="noopener">Open new Snack</a>
-  <div class="note">Startup hotfix: React Native font weights are normalized to supported values. This launcher creates a new Snack and does not modify existing projects. Ticket QR, crew location, payments and Wallet integration are prototype-only until connected to production services.</div>
+  <button class="go" id="go">Create XXL PASS 1.0.2 · Connection Fix</button>
+  <pre class="status" id="status">Ready · XXL PASS 1.0.2 connection hotfix. The Snack will stay ONLINE so Expo Go can connect.</pre>
+  <a class="open" id="openExpo" href="#" style="display:none">Open directly in Expo Go</a>
+<a class="open" id="open" target="_blank" rel="noopener">Open Snack editor</a>
+  <div class="note">Connection hotfix: Snack is now published ONLINE for Expo Go. React Native font weights are also normalized to supported values. This launcher creates a new Snack and does not modify existing projects. Ticket QR, crew location, payments and Wallet integration are prototype-only until connected to production services.</div>
 </main>
 <script type="module">
-const go=document.querySelector('#go'),statusEl=document.querySelector('#status'),openLink=document.querySelector('#open'),codeEl=document.querySelector('#code'),depEl=document.querySelector('#dep');
+const go=document.querySelector('#go'),statusEl=document.querySelector('#status'),openLink=document.querySelector('#open'),openExpo=document.querySelector('#openExpo'),codeEl=document.querySelector('#code'),depEl=document.querySelector('#dep');
 const setStatus=(t,k='')=>{statusEl.textContent=t;statusEl.className='status '+k};
 async function loadSdk(){try{return await import('https://cdn.jsdelivr.net/npm/snack-sdk@6.6.2/+esm')}catch{return await import('https://esm.sh/snack-sdk@6.6.2?bundle')}}
 async function readPayload(){
@@ -60,14 +61,14 @@ async function readPayload(){
   };
   payload.manifest={
     ...(payload.manifest||{}),
-    name:'XXL PASS 1.0.1 · Arena Takedown',
-    description:'XXL PASS startup hotfix — normalized React Native font weights.'
+    name:'XXL PASS 1.0.2 · Arena Takedown',
+    description:'XXL PASS 1.0.2 — startup + Expo Go connection hotfix.'
   };
   return payload;
 }
 try{const p=await readPayload();codeEl.textContent=Object.keys(p.code||{}).length;depEl.textContent=Object.keys(p.dependencies||{}).length}catch{codeEl.textContent='—';depEl.textContent='—'}
 go.onclick=async()=>{
- go.disabled=true;openLink.style.display='none';
+ go.disabled=true;openLink.style.display='none';openExpo.style.display='none';
  try{
   setStatus('1/4 · Loading XXL PASS payload…');
   const payload=await readPayload();
@@ -78,13 +79,27 @@ go.onclick=async()=>{
   setStatus(`2/4 · ${codeCount} files / ${depCount} dependencies\nLoading Expo Snack SDK…`);
   const {Snack}=await loadSdk();
   setStatus('3/4 · Building a new Expo Snack…');
-  const snack=new Snack({name:payload.manifest.name,description:payload.manifest.description,sdkVersion:payload.manifest.sdkVersion||'54.0.0',files,dependencies,online:false});
+  const snack=new Snack({
+    name:payload.manifest.name,
+    description:payload.manifest.description,
+    sdkVersion:payload.manifest.sdkVersion||'54.0.0',
+    files,
+    dependencies,
+    online:true
+  });
+  // Explicitly advertise the Snack over snackpub so Expo Go can connect.
+  snack.setOnline(true);
+  await snack.getStateAsync();
   const result=await snack.saveAsync({ignoreUser:true,isDraft:false});
   const state=await snack.getStateAsync();
   const id=result?.id||result?.snackId||result?.accountSnackId||state?.id;
   if(!id)throw new Error('Snack saved without a readable ID.');
-  setStatus(`4/4 · DONE ✅\nXXL PASS 1.0.1 · Arena Takedown\nSnack ID: ${id}\nFiles: ${Object.keys(state.files||{}).length}\nDependencies: ${Object.keys(state.dependencies||{}).length}`,'ok');
+  setStatus(`4/4 · DONE ✅\nXXL PASS 1.0.2 · Arena Takedown\nSnack ID: ${id}\nFiles: ${Object.keys(state.files||{}).length}\nDependencies: ${Object.keys(state.dependencies||{}).length}`,'ok');
   openLink.href='https://snack.expo.dev/'+id;openLink.style.display='block';
+  if(state?.url){
+    openExpo.href=state.url;
+    openExpo.style.display='block';
+  }
  }catch(e){setStatus('CREATE FAILED ❌\n'+(e?.message||String(e)),'error')}finally{go.disabled=false}
 };
 </script>
